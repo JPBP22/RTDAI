@@ -20,7 +20,7 @@ holistic = mp_holistic.Holistic()
 st.title("MediaPipe Models with Streamlit")
 st.sidebar.title("Model Selection")
 model_choice = st.sidebar.radio("Choose a Model", ("Hand Landmarker", "Face Detector", 
-                                                   "Face Landmark", "Pose Landmark", "Hand Gesture"))
+                                                   "Face Landmark", "Pose Landmark"))
 
 # Processing functions for each model
 def process_hand_frame(frame, model):
@@ -54,15 +54,6 @@ def process_pose_frame(frame, model):
         mp.solutions.drawing_utils.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
     return cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-def process_hand_gesture_frame(frame, model):
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = model.process(frame)
-    if results.left_hand_landmarks:
-        mp.solutions.drawing_utils.draw_landmarks(frame, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-    if results.right_hand_landmarks:
-        mp.solutions.drawing_utils.draw_landmarks(frame, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-    return cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
 # Streamlit component to capture webcam input
 run = st.checkbox('Run Webcam')
 FRAME_WINDOW = st.image([])
@@ -83,8 +74,6 @@ while run:
         frame = process_face_mesh_frame(frame, face_mesh)
     elif model_choice == "Pose Landmark":
         frame = process_pose_frame(frame, pose)
-    elif model_choice == "Hand Gesture":
-        frame = process_hand_gesture_frame(frame, holistic)
 
     # Display the frame
     FRAME_WINDOW.image(frame, channels="BGR", use_column_width=True)
