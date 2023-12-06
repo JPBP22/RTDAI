@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import mediapipe as mp
 import cv2
 import numpy as np
@@ -10,17 +11,10 @@ mp_face_mesh = mp.solutions.face_mesh
 mp_pose = mp.solutions.pose
 mp_holistic = mp.solutions.holistic
 
-hands = mp_hands.Hands()
-face_detection = mp_face_detection.FaceDetection()
-face_mesh = mp_face_mesh.FaceMesh()
-pose = mp_pose.Pose()
-holistic = mp_holistic.Holistic()
-
 # Streamlit page configuration
 st.title("MediaPipe Models with Streamlit")
 st.sidebar.title("Model Selection")
-model_choice = st.sidebar.radio("Choose a Model", ("Hand Landmarker", "Face Detector", 
-                                                   "Face Landmark", "Pose Landmark"))
+model_choice = st.sidebar.radio("Choose a Model", ("Hand Landmarker", "Face Detector", "Face Landmark", "Pose Landmark"))
 
 # Processing functions for each model
 def process_hand_frame(frame, model):
@@ -54,36 +48,25 @@ def process_pose_frame(frame, model):
         mp.solutions.drawing_utils.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
     return cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
+# Video Processor Class
+class VideoProcessor(VideoTransformerBase):
+    def transform(self, frame):
+        img = frame.to_ndarray(format="bgr24")
+
+        if model_choice == "Hand Landmarker":
+            with mp_hands.Hands() as hands:
+                img = process_hand_frame(img, hands)
+        elif model_choice == "Face Detector":
+            with mp_face_detection.FaceDetection() as face_detection:
+                img = process_face_frame(img, face_detection)
+        elif model_choice == "Face Landmark":
+            with mp_face_mesh.FaceMesh() as face_mesh:
+                img = process_face_mesh_frame(img, face_mesh)
+        elif model_choice == "Pose Landmark":
+            with mp_pose.Pose() as pose:
+                img = process_pose_frame(img, pose)
+
+        return img
+
 # Streamlit component to capture webcam input
-run = st.checkbox('Run Webcam')
-FRAME_WINDOW = st.image([])
-
-# Webcam input
-cap = cv2.VideoCapture(0)
-while run:
-    ret, frame = cap.read()
-    if not ret:
-        continue
-
-    # Process the frame based on model choice
-    if model_choice == "Hand Landmarker":
-        frame = process_hand_frame(frame, hands)
-    elif model_choice == "Face Detector":
-        frame = process_face_frame(frame, face_detection)
-    elif model_choice == "Face Landmark":
-        frame = process_face_mesh_frame(frame, face_mesh)
-    elif model_choice == "Pose Landmark":
-        frame = process_pose_frame(frame, pose)
-
-    # Display the frame
-    FRAME_WINDOW.image(frame, channels="BGR", use_column_width=True)
-else:
-    st.write('Stopped')
-
-# Clean up
-cap.release()
-hands.close()
-face_detection.close()
-face_mesh.close()
-pose.close()
-holistic.close()
+webrtc_streamer(key="example", video_processor_factory=VideoProcessor)
