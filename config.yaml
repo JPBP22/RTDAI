@@ -8,6 +8,26 @@ credentials:
       email: aescf@gmail.com
       name: Alejandro Escobio
       password: "$2b$12$8Gt0m5rh6Aufmmfv5.OKkOhe1CEYZps0/hZ.H/F.i07BMAJx0zNdO"
+    momo:
+      email: momo@gmail.com
+      name: Momo
+      password: "$2b$12$8Gt0m5rh6Aufmmfv5.OKkOhe1CEYZps0/hZ.H/F.i07BMAJx0zNdO"
+    sebbal:
+      email: sebbal@gmail.com
+      name: Sebastian
+      password: "$2b$12$8Gt0m5rh6Aufmmfv5.OKkOhe1CEYZps0/hZ.H/F.i07BMAJx0zNdO"
+    barrzy:
+      email: barrzy@gmail.com
+      name: Bartosz 
+      password: "$2b$12$8Gt0m5rh6Aufmmfv5.OKkOhe1CEYZps0/hZ.H/F.i07BMAJx0zNdO"
+    katmoo:
+      email: katmoo@gmail.com
+      name: Katie 
+      password: "$2b$12$8Gt0m5rh6Aufmmfv5.OKkOhe1CEYZps0/hZ.H/F.i07BMAJx0zNdO"
+    elchingon:
+      email: elchingon@gmail.com
+      name: Manoel
+      password: "$2b$12$8Gt0m5rh6Aufmmfv5.OKkOhe1CEYZps0/hZ.H/F.i07BMAJx0zNdO"
 cookie:
   expiry_days: 30
   key: some_signature_key # Must be string
