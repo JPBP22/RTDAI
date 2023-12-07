@@ -75,8 +75,7 @@ class VideoProcessor(VideoTransformerBase):
 
     def transform(self, frame):
         img = frame.to_ndarray(format="bgr24")
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        return process_frame(img, self.model_choice)
+        return process_frame((cv2.cvtColor(img, cv2.COLOR_BGR2RGB)), self.model_choice)
 
 # Authentication
 name, authentication_status, username = authenticator.login("Login", "main")
@@ -87,7 +86,7 @@ if authentication_status:
     st.title(f"MediaPipe Models with Streamlit - Welcome {name}")
     st.sidebar.title("Model Selection")
     model_choice = st.sidebar.radio("Choose a Model", ("Hand Landmarker", "Face Detector", "Face Landmark", "Pose Landmark"))
-    
+
     # Video Source Selection
     source = st.sidebar.radio("Choose Video Source", ("Webcam", "Video File"))
 
@@ -103,6 +102,7 @@ if authentication_status:
                 video_path = tmpfile.name
 
             cap = cv2.VideoCapture(video_path)
+            frame_placeholder = st.empty()  # Placeholder for video frames
 
             while cap.isOpened():
                 ret, frame = cap.read()
@@ -111,15 +111,16 @@ if authentication_status:
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 processed_frame = process_frame(frame, model_choice)
-                st.image(processed_frame, channels="RGB", use_column_width=True)
+                frame_placeholder.image(processed_frame, channels="RGB", use_column_width=True)
 
             cap.release()
 
-    # Logout button
-    # Logout button
-if st.session_state["authentication_status"]:
-    authenticator.logout('Logout', 'main', key='unique_key')
-elif st.session_state["authentication_status"] is False:
+# Logout button logic
+if st.session_state.get("authentication_status"):
+    if st.button('Logout', key='logout_button'):
+        authenticator.logout("Logout", "main")
+        st.write("You have been logged out.")
+elif st.session_state.get("authentication_status") == False:
     st.error('Username/password is incorrect')
-elif st.session_state["authentication_status"] is None:
+elif st.session_state.get("authentication_status") == None:
     st.warning('Please enter your username and password')
