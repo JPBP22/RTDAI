@@ -6,6 +6,9 @@ import yaml
 import tempfile
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
+import csv
+import datetime
+import os
 
 # Load the configuration from the YAML file for authentication
 with open('config.yaml') as file:
@@ -74,11 +77,36 @@ class VideoProcessor(VideoTransformerBase):
         self.model_choice = model_choice
 
     def transform(self, frame):
-        img = frame.to_ndarray(format="bgr24")
+        img = frame.to_ndarray(format="rgb24")
         return process_frame((cv2.cvtColor(img, cv2.COLOR_BGR2RGB)), self.model_choice)
+
+# Function to log the data
+def log_data(username, model_choice=None, source=None, timestamp=None, action=None):
+    log_file = 'usage_log.csv'
+    log_entry = [username, model_choice, source, timestamp, action]
+
+    # Check if the log file exists and write headers if it doesn't
+    file_exists = os.path.isfile(log_file)
+    with open(log_file, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        if not file_exists:
+            writer.writerow(['Username', 'Model Choice', 'Source', 'Timestamp', 'Action'])
+        writer.writerow(log_entry)
+
+# Initialize session state for login and logout logging
+if 'logged_login' not in st.session_state:
+    st.session_state['logged_login'] = False
+if 'logged_logout' not in st.session_state:
+    st.session_state['logged_logout'] = False
 
 # Authentication
 name, authentication_status, username = authenticator.login("Login", "main")
+
+# Log login action
+if authentication_status and not st.session_state['logged_logout']:
+    log_data(username, action='login', timestamp=datetime.datetime.now())
+else: 
+    st.session_state['logged_login'] = True
 
 # Main application logic
 if authentication_status:
@@ -93,6 +121,7 @@ if authentication_status:
     # Video Processing based on source
     if source == "Webcam":
         webrtc_streamer(key="example", video_processor_factory=lambda: VideoProcessor(model_choice))
+        log_data(username, model_choice, "Webcam", datetime.datetime.now())
     elif source == "Video File":
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if uploaded_file is not None:
@@ -114,13 +143,18 @@ if authentication_status:
                 frame_placeholder.image(processed_frame, channels="RGB", use_column_width=True)
 
             cap.release()
+        log_data(username, model_choice, "Video File", datetime.datetime.now())
 
-# Logout button logic
-if st.session_state.get("authentication_status"):
-    if st.button('Logout', key='logout_button'):
-        authenticator.logout("Logout", "main")
-        st.write("You have been logged out.")
-elif st.session_state.get("authentication_status") == False:
+if 'Logout' in st.session_state and st.session_state['logged_login']:
+    log_data(username, action='logout', timestamp=datetime.datetime.now())
+    if  st.session_state['logged_logout']:
+        st.session_state['logged_logout'] = True
+    del st.session_state['Logout']
+
+if st.session_state["authentication_status"]:
+    st.session_state['Logout'] = authenticator.logout('Logout', 'main', key='unique_key')
+    
+elif st.session_state["authentication_status"] is False:
     st.error('Username/password is incorrect')
-elif st.session_state.get("authentication_status") == None:
+elif st.session_state["authentication_status"] is None:
     st.warning('Please enter your username and password')
