@@ -1,0 +1,17 @@
+credentials:
+  usernames:
+    jpb:
+      email: jpb@gmail.com
+      name: Jose Pablo Bello
+      password: "$2b$12$8Gt0m5rh6Aufmmfv5.OKkOhe1CEYZps0/hZ.H/F.i07BMAJx0zNdO"
+    aescf:
+      email: aescf@gmail.com
+      name: Alejandro Escobio
+      password: "$2b$12$8Gt0m5rh6Aufmmfv5.OKkOhe1CEYZps0/hZ.H/F.i07BMAJx0zNdO"
+cookie:
+  expiry_days: 30
+  key: some_signature_key # Must be string
+  name: some_cookie_name
+preauthorized:
+  emails:
+  - melsby@gmail.com
